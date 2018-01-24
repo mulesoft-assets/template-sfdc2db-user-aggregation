@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="mainFlow" doc:id="c9d80d54-ed92-4dc2-872f-629f3c0b678f">
+		<flow-ref doc:name="bussinesslogicFlow" doc:id="7e1b3d52-2256-4af8-b0c5-b8fbee3d1b66" name="bussinesslogicFlow" />
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="488b507d-e26c-4c56-8759-8bb4f6645d71" type="ANY">
+				<flow-ref doc:name="errorHandlingFlow" doc:id="afdaf73c-0137-4d60-84f6-5c41234771a3" name="errorHandlingFlow" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="bussinesslogicFlow" doc:id="40b0863d-64d1-4b34-a995-9a3783fb911e" >
+		<scatter-gather doc:name="Scatter-Gather" doc:id="895d0dd7-fe8c-47c9-9120-81fad608bef2" >
+			<route >
+				<salesforce:query doc:name="Query all users from SalesForce instance" doc:id="6b5c9023-63c3-42f1-889f-08ea5b1a5bab" config-ref="Salesforce_Sfdc_config">
+					<salesforce:salesforce-query >SELECT Name, Email, Username, Id  FROM User</salesforce:salesforce-query>
+				</salesforce:query>
+			</route>
+			<route >
+				<db:select doc:name="Query all users from the DB" doc:id="402cc398-ace6-4bdd-8bee-b12af52ba312" config-ref="Database_Config">
+					<db:sql >SELECT * FROM users</db:sql>
+				</db:select>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Collection to CSV" doc:id="7668acb0-da18-4df8-92a8-0bc58c5ad88b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+import mergeWith from dw::core::Objects
+var sfdcAccounts = payload["0"].payload map (account) -> {
+	"Name": account.Name,
+	"Email": account.Email,
+	"IDInSfdc": account.Id,
+	"UserNameInSfdc": account.Username
+}
+var dbAccounts = payload["1"].payload map (account) -> {
+	"Name": account.name,
+	"Email": account.email,
+	"IDInDb": account.id,
+	"UserNameInDb": account.username
+}
+var mergedAccounts =  (
+                sfdcAccounts map ((item) -> item mergeWith ((dbAccounts filter ($.Email == item.Email))[0] 
+                    default {IDInDb: "", UserNameInDb: ""}
+                ))
+            ) distinctBy $.Email
+            ++ (
+                dbAccounts map ((item) -> item mergeWith ((sfdcAccounts filter ($.Email == item.Email))[0] 
+                    default {IDInSfdc: "", UserNameInSfdc: ""}
+                ))
+            ) distinctBy $.Email
+fun sortBySourceExistence (accounts) = ((accounts map (account) -> (
+        account ++ {
+            sortValue:  if ((account.IDInSfdc != "") and (account.IDInDb == "")) 1 
+                        else if ((account.IDInDb != "") and (account.IDInSfdc == "")) 2 
+                        else 3
+        }
+    )
+) orderBy $.sortValue ) map $ -"sortValue"
+---
+sortBySourceExistence(mergedAccounts) map (account) -> {
+	"Name": account.Name,
+	"Email": account.Email,
+	"IDInSfdc": account.IDInSfdc,
+	"UserNameInSfdc": account.UserNameInSfdc,
+	"IDInDb": account.IDInDb,
+	"UserNameInDb": account.UserNameInDb
+ }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<email:send config-ref="Gmail_SMTP" doc:name="Send migration result email"
+			doc:id="5896eaa9-dd10-47a2-a6fc-6319b11dbd06" fromAddress="${mail.from}"
+			subject="${mail.subject}">
+			<email:to-addresses>
+				<email:to-address value="${mail.to}" />
+			</email:to-addresses>
+			<email:body contentType="text/plain">
+				<email:content ><![CDATA[${mail.body}]]></email:content>
+			</email:body>
+			<email:attachments ><![CDATA[#[{'${attachment.name}' : payload}]]]></email:attachments>
+		
+		</email:send>
+	</flow> 	
+</mule>
