@@ -35,44 +35,44 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/csv
 import mergeWith from dw::core::Objects
-var sfdcAccounts = payload["0"].payload map (account) -> {
-	"Name": account.Name,
-	"Email": account.Email,
-	"IDInSfdc": account.Id,
-	"UserNameInSfdc": account.Username
+var sfdcUsers = payload["0"].payload map (user) -> {
+	"Name": user.Name,
+	"Email": user.Email,
+	"IDInSfdc": user.Id,
+	"UserNameInSfdc": user.Username
 }
-var dbAccounts = payload["1"].payload map (account) -> {
-	"Name": account.name,
-	"Email": account.email,
-	"IDInDb": account.id,
-	"UserNameInDb": account.username
+var dbUsers = payload["1"].payload map (user) -> {
+	"Name": user.name,
+	"Email": user.email,
+	"IDInDb": user.id,
+	"UserNameInDb": user.username
 }
-var mergedAccounts =  (
-                sfdcAccounts map ((item) -> item mergeWith ((dbAccounts filter ($.Email == item.Email))[0] 
+var mergedUsers =  (
+                sfdcUsers map ((item) -> item mergeWith ((dbUsers filter ($.Email == item.Email))[0] 
                     default {IDInDb: "", UserNameInDb: ""}
                 ))
             ) distinctBy $.Email
             ++ (
-                dbAccounts map ((item) -> item mergeWith ((sfdcAccounts filter ($.Email == item.Email))[0] 
+                dbUsers map ((item) -> item mergeWith ((sfdcUsers filter ($.Email == item.Email))[0] 
                     default {IDInSfdc: "", UserNameInSfdc: ""}
                 ))
             ) distinctBy $.Email
-fun sortBySourceExistence (accounts) = ((accounts map (account) -> (
-        account ++ {
-            sortValue:  if ((account.IDInSfdc != "") and (account.IDInDb == "")) 1 
-                        else if ((account.IDInDb != "") and (account.IDInSfdc == "")) 2 
+fun sortBySourceExistence (users) = ((users map (user) -> (
+        user ++ {
+            sortValue:  if ((user.IDInSfdc != "") and (user.IDInDb == "")) 1 
+                        else if ((user.IDInDb != "") and (user.IDInSfdc == "")) 2 
                         else 3
         }
     )
 ) orderBy $.sortValue ) map $ -"sortValue"
 ---
-sortBySourceExistence(mergedAccounts) map (account) -> {
-	"Name": account.Name,
-	"Email": account.Email,
-	"IDInSfdc": account.IDInSfdc,
-	"UserNameInSfdc": account.UserNameInSfdc,
-	"IDInDb": account.IDInDb,
-	"UserNameInDb": account.UserNameInDb
+sortBySourceExistence(mergedUsers) map (user) -> {
+	"Name": user.Name,
+	"Email": user.Email,
+	"IDInSfdc": user.IDInSfdc,
+	"UserNameInSfdc": user.UserNameInSfdc,
+	"IDInDb": user.IDInDb,
+	"UserNameInDb": user.UserNameInDb
  }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
