@@ -1,13 +1,13 @@
 {
   "configs": [
     "config.xml",
-    "errorhandling.xml",
+    "errorHandling.xml",
     "endpoints.xml",
-    "bussinesslogic.xml"
+    "bussinessLogic.xml"
   ],
   "redeploymentEnabled": true,
   "name": "template-sfdc2db-user-aggregation",
-  "minMuleVersion": "4.0.0",
+  "minMuleVersion": "4.1.0",
   "requiredProduct": "MULE_EE",
   "classLoaderModelLoaderDescriptor": {
     "id": "mule",
