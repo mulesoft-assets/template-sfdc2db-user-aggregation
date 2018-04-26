@@ -36,11 +36,11 @@ As implemented, it gets users from a Salesforce instance and a DB table, compare
 
 # Considerations <a name="considerations"/>
 
-To make this Anypoint Template run, there are certain preconditions that must be considered. All of them deal with the preparations in both, that must be made in order for all to run smoothly. **Failling to do so could lead to unexpected behavior of the template.**
+To make this Anypoint Template run, there are certain preconditions that must be considered. All of them deal with the preparations in both, that must be made in order for all to run smoothly. **Failing to do so could lead to unexpected behavior of the template.**
 
-**Note:** This particular Anypoint Template ilustrate the aggregation use case between SalesForce and a Data Base, thus it requires a DB instance to work.
+**Note:** This particular Anypoint Template illustrate the aggregation use case between SalesForce and a Data Base, thus it requires a DB instance to work.
 The Anypoint Template comes package with a SQL script to create the DB table that uses. 
-It is the user responsability to use that script to create the table in an available schema and change the configuration accordingly.
+It is the user responsibility to use that script to create the table in an available schema and change the configuration accordingly.
 The SQL script file can be found in src/main/resources/sfdc2jdbc.sql
 
 ## DB Considerations <a name="dbconsiderations"/>
@@ -123,10 +123,8 @@ First thing to know if you are a newcomer to Mule is where to get the tools.
 ### Importing an Anypoint Template into Studio
 Mule Studio offers several ways to import a project into the workspace, for instance: 
 
-+ Anypoint Studio generated Deployable Archive (.zip)
-+ Anypoint Studio Project from External Location
-+ Maven-based Mule Project from pom.xml
-+ Mule ESB Configuration XML from External Location
++ Anypoint Studio Project from File System
++ Packaged mule application (.jar)
 
 You can find a detailed description on how to do so in this [Documentation Page](http://www.mulesoft.org/documentation/display/current/Importing+and+Exporting+in+Studio).
 
@@ -156,30 +154,30 @@ Mule Studio provides you with really easy way to deploy your Template directly t
 ## Properties to be configured (With examples) <a name="propertiestobeconfigured"/>
 In order to use this Mule Anypoint Template you need to configure properties (Credentials, configurations, etc.) either in properties file or in CloudHub as Environment Variables. Detail list with examples:
 ### Application configuration
-#### HTTP Connector configuration		
+**HTTP Connector configuration**	
 + http.port `9090` 
 
-#### SalesForce Connector configuration
+**SalesForce Connector configuration**
 + sfdc.username `bob.dylan@org`
 + sfdc.password `DylanPassword123`
 + sfdc.securityToken `avsfwCUl7apQs56Xq2AKi3X`
 
-#### Database Connector configuration
+**Database Connector configuration**
 + db.host `localhost`
 + db.port `3306`
-+ db.user `joan.baez`
-+ db.password `JoanBaez456`
-+ db.databasename `template-sfdc2db-user-broadcast`
++ db.user `mule_user`
++ db.password `mule_pwd`
++ db.databasename `template-sfdc2db-user-aggregation`
 
-#### SMTP Services configuration
+**SMTP Services configuration**
 + smtp.host `smtp.gmail.com`
 + smtp.port `587`
 + smtp.user `exampleuser@gmail.com`
 + smtp.password `ExamplePassword456`
 
-#### Mail details
-+ mail.from `exampleuser@gmail.com`
-+ mail.to `woody.guthrie@gmail.com`
+**Mail details**
++ mail.from `exampleuser1@gmail.com`
++ mail.to `exampleuser2@gmail.com`
 + mail.subject `Users Report`
 + mail.body `Please find attached your Users Report`
 + attachment.name `users_report.csv`
@@ -208,7 +206,7 @@ In the visual editor they can be found on the *Global Element* tab.
 
 
 ## businessLogic.xml<a name="businesslogicxml"/>
-Functional aspect of the Template is implemented on this XML, directed by one flow responsible of conducting the aggregation of data, comparing records and finally formating the output, in this case being a report.
+Functional aspect of the Template is implemented on this XML, directed by one flow responsible of conducting the aggregation of data, comparing records and finally formatting the output, in this case being a report.
 
 Using Scatter-Gather component we are querying the data in different systems. After that the aggregation is implemented in DataWeave 2 script using Transform component.
 Aggregated results are sorted by source of existence:
