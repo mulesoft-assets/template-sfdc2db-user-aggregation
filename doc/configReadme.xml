@@ -5,94 +5,95 @@
 	</placeholders>
 	<sections>
 		<section id="use_case">
-As a Salesforce admin I want to aggregate users from a Salesforce Instances and a Database, and compare them to see which users can only be found in one of the two and which users are in both. 
+As a Salesforce administrator I want to aggregate users from a Salesforce instance and a database, and compare them to see which users are in one of the two and which users are in both.
 
-For practical purposes this Anypoint Template will generate the result in the format of a CSV Report sent by mail.
+This template has these features: 
 
-This Anypoint Template should serve as a foundation for extracting data from two systems, aggregating data, comparing values of fields for the objects, and generating a report on the differences. 
-
-As implemented, it gets users from a Salesforce instance and a DB table, compares by the email address of the users, and generates a CSV file which shows users in A, users in B (being "B" the DB), and Users in A and B. The report is then emailed to a configured group of email addresses.
+- Generates a CSV results report that is sent by email to addresses you configure.
+- Extracts data from two systems, aggregates data, compares values of fields for the objects, and generates a report of the differences. 
+- Gets users from a Salesforce instance and a database table, compares by the email address of the users, and generates a CSV file that shows users in A, users in B (being "B" the database), and users in A and B. The report is then emailed to a configured group of email addresses.
 		</section>
 		<section id="considerations">
 <![CDATA[
-To make this Anypoint Template run, there are certain preconditions that must be considered. All of them deal with the preparations in both, that must be made in order for all to run smoothly. **Failing to do so could lead to unexpected behavior of the template.**
+To make this template run, there are certain preconditions that must be considered. All of them deal with the preparations in both, that must be made for all to run smoothly. Failing to do so could lead to unexpected behavior of the template.
 
-**Note:** This particular Anypoint Template illustrate the aggregation use case between SalesForce and a Data Base, thus it requires a DB instance to work.
-The Anypoint Template comes package with a SQL script to create the DB table that uses. 
-It is the user responsibility to use that script to create the table in an available schema and change the configuration accordingly.
-The SQL script file can be found in src/main/resources/sfdc2jdbc.sql
+**Note:** This template illustrates the aggregation use case between Salesforce and a database, thus it requires a database instance to work.
+The template comes package with a SQL script to create the database table it uses. 
+It is your responsibility to use that script to create the table in an available schema and change the configuration accordingly.
+The SQL script file can be found in src/main/resources/sfdc2jdbc.sql.
 ]]>
 		</section>
 		<section id="running_on_cloudhub">
 <![CDATA[
-Once your app is all set and started, supposing you choose as domain name `useraggregation` to trigger the use case you just need to hit `http://useraggregation.cloudhub.io/generatereport` and report will be sent to the emails configured.
+After your app is running, if you chose `useraggregation` as the domain name to trigger the use case, browse to `http://useraggregation.cloudhub.io/generatereport`, which invokes the app and sends the CSV report to the emails you configure.
 ]]>
 		</section>
 		<section id="running_on_standalone">
 <![CDATA[
-After this, to trigger the use case you just need to hit the local http endpoint with the port you configured in your file. If this is, for instance, `9090` then you should hit: `http://localhost:9090/synccontacts` and this will create a CSV report and send it to the mails set.
+After this, to trigger the use case, browse to the endpoint using the port you configured in your file. If you set `9090` as the port, browse to `http://localhost:9090/synccontacts`. This URL creates the CSV report and sends it to the emails you set.
 ]]>
 		</section>
 		<section id="application_configuration">
 		<![CDATA[
-**HTTP Connector configuration**	
+**HTTP Connector Configuration**	
 + http.port `9090` 
 
-**SalesForce Connector configuration**
+**SalesForce Connector Configuration**
 + sfdc.username `bob.dylan@org`
 + sfdc.password `DylanPassword123`
 + sfdc.securityToken `avsfwCUl7apQs56Xq2AKi3X`
 
-**Database Connector configuration**
+**database Connector Configuration**
 + db.host `localhost`
 + db.port `3306`
 + db.user `mule_user`
 + db.password `mule_pwd`
 + db.databasename `template-sfdc2db-user-aggregation`
 
-**SMTP Services configuration**
-+ smtp.host `smtp.gmail.com`
+**SMTP Services Configuration**
++ smtp.host `smtp.example.com`
 + smtp.port `587`
-+ smtp.user `exampleuser@gmail.com`
++ smtp.user `exampleuser@example.com`
 + smtp.password `ExamplePassword456`
 
-**Mail details**
-+ mail.from `exampleuser1@gmail.com`
-+ mail.to `exampleuser2@gmail.com`
+**Email dDetails**
++ mail.from `exampleuser1@example.com`
++ mail.to `exampleuser2@example.com`
 + mail.subject `Users Report`
-+ mail.body `Please find attached your Users Report`
++ mail.body `Find attached your users report`
 + attachment.name `users_report.csv`
 ]]>
 		</section>
 		<section id="api_calls">
 		<![CDATA[
-Salesforce imposes limits on the number of API Calls that can be made. However, we make API call to Salesforce only once during aggregation. 
+Salesforce imposes limits on the number of API calls that can be made. However, this template makes only one API call to Salesforce during aggregation. 
 ]]>
 		</section>
 		<section id="default_endpoints_xml">
 		<![CDATA[
-This is the file where you will found the endpoint to start the aggregation. This Template has an HTTP Inbound Endpoint as the way to trigger the use case.
+The file where you find the endpoint to start the aggregation. This template uses an HTTP Listener as the way to trigger the use case.
 
 $H$H# Trigger Flow
 **HTTP Inbound Endpoint** - Start Report Generation
 + `${http.port}` is set as a property to be defined either on a property file or in CloudHub environment variables.
 + The path configured by default is `generatereport` and you are free to change for the one you prefer.
-+ The host name for all endpoints in your CloudHub configuration should be defined as `localhost`. CloudHub will then route requests from your application domain URL to the endpoint.
++ The host name for all endpoints in your CloudHub configuration should be defined as `localhost`. CloudHub then routes requests from your application domain URL to the endpoint.
 
 ]]>
 		</section>
 		<section id="default_business_logic_xml">
 		<![CDATA[
-Functional aspect of the Template is implemented on this XML, directed by one flow responsible of conducting the aggregation of data, comparing records and finally formatting the output, in this case being a report.
+The functional aspect of this template is implemented in its XML directed by a flow responsible for conducting the aggregation of data, comparing records and finally formatting the output as a report.
 
-Using Scatter-Gather component we are querying the data in different systems. After that the aggregation is implemented in DataWeave 2 script using Transform component.
-Aggregated results are sorted by source of existence:
+Using the Scatter-Gather component, the template queriesng the data in different systems. After that the aggregation is implemented in a DataWeave 2 script using Transform component.
 
-1. Users only in Salesforce
-2. Users only in Database
-3. Users in both Salesforce and Database
+Aggregated results are sorted by:
 
-and transformed to CSV format. Final report in CSV format is sent to email, that you configured in mule.*.properties file.
+1. Users only in Salesforce.
+2. Users only in the database.
+3. Users in both Salesforce and the database.
+
+These are transformed to CSV format. The final report in CSV format is sent to email addresses you configured in the mule.*.properties file.
 ]]>
 		</section>
 	</sections>
