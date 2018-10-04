@@ -11,7 +11,7 @@ Aggregation templates can be easily extended to return a multitude of data in mo
 
 **Note**: Any references in the video to DataMapper have been updated in the template with DataWeave transformations.
 
-[![YouTube Video](http://img.youtube.com/v1/u7kKnHS5qio/0.jpg)](https://www.youtube.com/embed/u7kKnHS5qio")]
+[![YouTube Video](http://img.youtube.com/vi/u7kKnHS5qio/0.jpg)](https://www.youtube.com/watch?v=u7kKnHS5qio)]
 
 
 # License Agreement
